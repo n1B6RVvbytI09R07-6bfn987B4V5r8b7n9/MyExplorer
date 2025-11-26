@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <title>Kup Domeny – Mój Internet 2025</title>
     <style>
-        body { background: white; color: #0f0; font-family: Consolas; padding: 40px; }
-        input, button { padding: 12px; font-size: 18px; margin: 10px; background: #000; color: #0f0; border: 2px solid #0f0; border-radius: 8px; }
+        body { background: white; color: black; font-family: Consolas; padding: 40px; }
+        /* Zmieniono tło body na WHITE i text na BLACK dla lepszej czytelności */
+        
+        /* ... pozostałe style ... */
         button { background: #0f0; color: black; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #555; cursor: not-allowed; color: #aaa; } /* Dodany styl dla wyłączonego przycisku */
         #wynik { font-size: 20px; margin: 20px; }
         hr { border: 1px solid #0f0; }
     </style>
@@ -20,24 +23,47 @@
 
     <p id="wynik"></p>
     <hr>
-    <button onclick="kupDomena()" style="padding:15px 40px;font-size:20px;">KUP TĘ DOMENĘ TERAZ</button>
+    <button id="kup_przycisk" onclick="kupDomena()" style="padding:15px 40px;font-size:20px;">KUP TĘ DOMENĘ TERAZ</button>
 
     <script>
         const BASE = "https://n1b6rvvbyti09r07-6bfn987b4v5r8b7n9.github.io/MyExplorer";
+        const KUP_PRZYCISK = document.getElementById('kup_przycisk');
+        const DOZWOLONE_KONCOWKI = ['.pl', '.com', '.net', '.org'];
+        let domenaDostepna = false;
+
+        wylaczPrzycisk(); // Wyłącz przycisk na starcie
+
+        function wylaczPrzycisk() {
+            KUP_PRZYCISK.disabled = true;
+        }
+
+        function wlaczPrzycisk() {
+            KUP_PRZYCISK.disabled = false;
+        }
 
         function sprawdzDostepnosc() {
             const domena = document.getElementById('domena').value.trim();
             const wynik = document.getElementById('wynik');
+            domenaDostepna = false;
+            wylaczPrzycisk();
 
             if (!domena) {
                 wynik.innerHTML = "<span style='color:red'>Podaj nazwę domeny!</span>";
                 return;
             }
 
+            // --- 1. WALIDACJA KOŃCÓWKI ---
+            const koncowka = domena.substring(domena.lastIndexOf('.')).toLowerCase();
+            if (DOZWOLONE_KONCOWKI.indexOf(koncowka) === -1) {
+                wynik.innerHTML = `<span style='color:red'>Niedozwolona końcówka: <b>${koncowka}</b>. Dozwolone: ${DOZWOLONE_KONCOWKI.join(', ')}.</span>`;
+                return;
+            }
+            // -----------------------------
+
             wynik.innerHTML = "Sprawdzam...";
             wynik.style.color = "gray";
 
-            // Sprawdzamy, czy istnieje folder/domena/index.html
+            // Sprawdzamy, czy istnieje folder/domena/index.html na GitHub Pages
             fetch(`${BASE}/${domena}/index.html`, { method: 'HEAD' })
                 .then(response => {
                     if (response.ok) {
@@ -46,11 +72,16 @@
                     } else {
                         wynik.innerHTML = `DOSTĘPNA! Domena <b>${domena}</b> jest wolna!<br>Możesz ją kupić!`;
                         wynik.style.color = "lime";
+                        domenaDostepna = true;
+                        wlaczPrzycisk(); // Włącz przycisk tylko, gdy jest wolna
                     }
                 })
                 .catch(() => {
+                    // W przypadku błędu sieci, traktujemy jako dostępną
                     wynik.innerHTML = `DOSTĘPNA! Domena <b>${domena}</b> jest wolna!<br>Możesz ją kupić!`;
                     wynik.style.color = "lime";
+                    domenaDostepna = true;
+                    wlaczPrzycisk(); 
                 });
         }
 
@@ -60,8 +91,30 @@
                 alert("Najpierw wpisz domenę!");
                 return;
             }
-            alert(`Kupiono domenę: ${domena}\n\nOd teraz należy do Ciebie w moim internecie!`);
-            // tutaj możesz dodać zapis do pliku / bazy / itp.
+
+            if (!domenaDostepna) {
+                alert("Nie można kupić: domena nie została sprawdzona lub jest zajęta!");
+                return;
+            }
+            
+            // --- 2. KOMUNIKACJA Z PYTHONEM ---
+            // Wywołujemy funkcję Pythona z osadzonego widoku webowego
+            // Ta funkcja musi być zaimplementowana po stronie Pythona (np. w wxPython lub PyQt)
+            
+            // Przykład dla wxPython/PyQt:
+            // window.external.utworz_domene(domena); // Zastąp tym, co działa w Twojej implementacji
+            
+            // Ponieważ nie znam Twojej konkretnej implementacji komunikacji JS-Python, 
+            // używamy alertu, ale w idealnej sytuacji tu jest wywołanie Pythona:
+            alert(`Wysłano żądanie utworzenia domeny: ${domena}\n(Wymaga implementacji funkcji Pythona)`);
+        }
+        
+        // Funkcja do wywołania przez Pythona po udanym utworzeniu folderu
+        function utworzDomene(nazwa) {
+            alert(`SUKCES! Domena ${nazwa} została utworzona!`);
+            wylaczPrzycisk();
+            document.getElementById('wynik').innerHTML = `Domena <b>${nazwa}</b> KUPIONA!`;
+            document.getElementById('wynik').style.color = "red";
         }
     </script>
 </body>
