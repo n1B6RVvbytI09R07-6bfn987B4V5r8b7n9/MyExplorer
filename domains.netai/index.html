@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <title>Kup Domeny</title>
@@ -7,10 +7,9 @@
 <body>
 
 <h1>Kup Domeny</h1>
-<p>Jeśli chcesz sprawdzić dostępność pliku, wpisz ścieżkę poniżej.</p>
+<p>Wpisz nazwe domeny (np. domena.org), aby sprawdzić jego dostępność.</p>
 
-<input type="text" id="sciezkaDoPliku" placeholder="Wpisz ścieżkę pliku (np. ../dane/plik.txt)" size="50">
-
+<input type="text" id="nazwaWzgledna" placeholder="Wpisz nazwę domeny" size="50">
 <button onclick="sprawdzPlik()">Sprawdź dostępność</button>
 <p id="wynik"></p>
 
@@ -22,41 +21,38 @@
 
 <script>
 function sprawdzPlik() {
-    // 2. POBRANIE WARTOŚCI Z INPUTA ZA POMOCĄ ID
-    const sciezkaPliku = document.getElementById('sciezkaDoPliku').value;
+    const nazwaWpisana = document.getElementById('nazwaWzgledna').value.trim(); // Pobierz i usuń białe znaki
     const wynikElement = document.getElementById('wynik');
 
-    // Walidacja, czy pole nie jest puste
-    if (!sciezkaPliku) {
-        wynikElement.textContent = 'Proszę podać ścieżkę pliku.';
+    if (!nazwaWpisana) {
+        wynikElement.textContent = 'Proszę podać nazwę pliku lub folderu.';
         wynikElement.style.color = 'red';
         return;
     }
+
+    // ⭐ KLUCZOWA ZMIANA: Automatycznie dodajemy "../"
+    const sciezkaPliku = '../' + nazwaWpisana;
     
-    wynikElement.textContent = 'Trwa sprawdzanie...';
+    wynikElement.textContent = `Trwa sprawdzanie ścieżki: ${sciezkaPliku} ...`;
     wynikElement.style.color = 'gray';
 
-    // 3. Użycie pobranej ścieżki w funkcji fetch()
+    // Wysłanie żądania HEAD
     fetch(sciezkaPliku, { method: 'HEAD' })
         .then(response => {
-            // response.ok to true dla statusów 200-299
             if (response.ok) {
-                console.log(`Plik: ${sciezkaPliku} - ISTNIEJE (Status: ${response.status})`);
-                wynikElement.textContent = `✅ Plik dostępny: ${sciezkaPliku}`;
+                wynikElement.textContent = `✅ Znaleziono: ${sciezkaPliku} (Status: ${response.status})`;
                 wynikElement.style.color = 'green';
             } else if (response.status === 404) {
-                console.log(`Plik: ${sciezkaPliku} - NIE ISTNIEJE (Status: ${response.status})`);
-                wynikElement.textContent = `❌ Plik NIE ISTNIEJE pod tym adresem.`;
+                wynikElement.textContent = `❌ Nie znaleziono: ${sciezkaPliku} (Status: ${response.status})`;
                 wynikElement.style.color = 'red';
             } else {
-                 console.log(`Plik: ${sciezkaPliku} - BŁĄD (Status: ${response.status})`);
-                 wynikElement.textContent = `⚠️ Błąd dostępu (Status: ${response.status}).`;
+                 wynikElement.textContent = `⚠️ Błąd dostępu do: ${sciezkaPliku} (Status: ${response.status})`;
                  wynikElement.style.color = 'orange';
             }
         })
         .catch(error => {
             console.error('Wystąpił błąd sieci lub CORS:', error);
-            wynikElement.textContent = '❗ Wystąpił błąd sieci lub problem z uprawnieniami (CORS).';
+            wynikElement.textContent = '❗ Błąd sieci lub uprawnień (CORS).';
             wynikElement.style.color = 'darkred';
         });
 }
