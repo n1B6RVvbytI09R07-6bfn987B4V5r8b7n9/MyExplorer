@@ -2,61 +2,67 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Kup Domeny</title>
+    <title>Kup Domeny – Mój Internet 2025</title>
+    <style>
+        body { background: black; color: #0f0; font-family: Consolas; padding: 40px; }
+        input, button { padding: 12px; font-size: 18px; margin: 10px; background: #000; color: #0f0; border: 2px solid #0f0; border-radius: 8px; }
+        button { background: #0f0; color: black; font-weight: bold; cursor: pointer; }
+        #wynik { font-size: 20px; margin: 20px; }
+        hr { border: 1px solid #0f0; }
+    </style>
 </head>
 <body>
+    <h1>Kup Domeny w Moim Internecie</h1>
+    <p>Wpisz nazwę domeny (np. <code>pornhub.com</code>), aby sprawdzić, czy jest wolna.</p>
 
-<h1>Kup Domeny</h1>
-<p>Wpisz nazwe domeny (np. domena.org), aby sprawdzić jego dostępność.</p>
+    <input type="text" id="domena" placeholder="np. google.com" size="50">
+    <button onclick="sprawdzDostepnosc()">Sprawdź dostępność</button>
 
-<input type="text" id="nazwaWzgledna" placeholder="Wpisz nazwę domeny" size="50">
-<button onclick="sprawdzPlik()">Sprawdź dostępność</button>
-<p id="wynik"></p>
+    <p id="wynik"></p>
+    <hr>
+    <button onclick="kupDomena()" style="padding:15px 40px;font-size:20px;">KUP TĘ DOMENĘ TERAZ</button>
 
-<hr>
+    <script>
+        const BASE = "https://n1b6rvvbyti09r07-6bfn987b4v5r8b7n9.github.io/MyExplorer";
 
-<form action="buy.html">
-  <input type="submit" value="Kup domene"/>
-</form>
+        function sprawdzDostepnosc() {
+            const domena = document.getElementById('domena').value.trim();
+            const wynik = document.getElementById('wynik');
 
-<script>
-function sprawdzPlik() {
-    const nazwaWpisana = document.getElementById('nazwaWzgledna').value.trim(); // Pobierz i usuń białe znaki
-    const wynikElement = document.getElementById('wynik');
-
-    if (!nazwaWpisana) {
-        wynikElement.textContent = 'Proszę podać nazwę pliku lub folderu.';
-        wynikElement.style.color = 'red';
-        return;
-    }
-
-    // ⭐ KLUCZOWA ZMIANA: Automatycznie dodajemy "../"
-    const sciezkaPliku = '../' + nazwaWpisana;
-    
-    wynikElement.textContent = `Trwa sprawdzanie ścieżki: ${sciezkaPliku} ...`;
-    wynikElement.style.color = 'gray';
-
-    // Wysłanie żądania HEAD
-    fetch(sciezkaPliku, { method: 'HEAD' })
-        .then(response => {
-            if (response.ok) {
-                wynikElement.textContent = `✅ Znaleziono: ${sciezkaPliku} (Status: ${response.status})`;
-                wynikElement.style.color = 'green';
-            } else if (response.status === 404) {
-                wynikElement.textContent = `❌ Nie znaleziono: ${sciezkaPliku} (Status: ${response.status})`;
-                wynikElement.style.color = 'red';
-            } else {
-                 wynikElement.textContent = `⚠️ Błąd dostępu do: ${sciezkaPliku} (Status: ${response.status})`;
-                 wynikElement.style.color = 'orange';
+            if (!domena) {
+                wynik.innerHTML = "<span style='color:red'>Podaj nazwę domeny!</span>";
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Wystąpił błąd sieci lub CORS:', error);
-            wynikElement.textContent = '❗ Błąd sieci lub uprawnień (CORS).';
-            wynikElement.style.color = 'darkred';
-        });
-}
-</script>
 
+            wynik.innerHTML = "Sprawdzam...";
+            wynik.style.color = "gray";
+
+            // Sprawdzamy, czy istnieje folder/domena/index.html
+            fetch(`${BASE}/${domena}/index.html`, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        wynik.innerHTML = `ZAJĘTA – domena <b>${domena}</b> już istnieje!`;
+                        wynik.style.color = "red";
+                    } else {
+                        wynik.innerHTML = `DOSTĘPNA! Domena <b>${domena}</b> jest wolna!<br>Możesz ją kupić!`;
+                        wynik.style.color = "lime";
+                    }
+                })
+                .catch(() => {
+                    wynik.innerHTML = `DOSTĘPNA! Domena <b>${domena}</b> jest wolna!<br>Możesz ją kupić!`;
+                    wynik.style.color = "lime";
+                });
+        }
+
+        function kupDomena() {
+            const domena = document.getElementById('domena').value.trim();
+            if (!domena) {
+                alert("Najpierw wpisz domenę!");
+                return;
+            }
+            alert(`Kupiono domenę: ${domena}\n\nOd teraz należy do Ciebie w moim internecie!`);
+            // tutaj możesz dodać zapis do pliku / bazy / itp.
+        }
+    </script>
 </body>
 </html>
