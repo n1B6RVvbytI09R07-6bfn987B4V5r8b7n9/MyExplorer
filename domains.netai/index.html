@@ -13,10 +13,12 @@
         button:disabled { background: #555; cursor: not-allowed; color: #aaa; } 
         #wynik { font-size: 20px; margin: 20px; }
         hr { border: 1px solid #0f0; }
+        /* Nowy styl dla komunikatu o błędzie symulacji PHP */
+        .error-php { color: #f00; font-weight: bold; margin-top: 15px; border: 2px solid #f00; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
-    <h1>Kup Domeny w Moim Internecie</h1>
+    <h1>Kup Domeny w Moim Internecie (Tryb PHP Symulowany)</h1>
     <p>Wpisz nazwę domeny (np. <code>domena.pl</code>), aby sprawdzić, czy jest wolna.</p>
 
     <input type="text" id="domena" placeholder="np. google.com" size="50">
@@ -24,12 +26,13 @@
 
     <p id="wynik"></p>
     <hr>
+    <!-- Przycisk kupowania teraz wywoła symulowane żądanie HTTP -->
     <button id="kup_przycisk" onclick="kupDomena()" style="padding:15px 40px;font-size:20px;">KUP TĘ DOMENĘ TERAZ</button>
 
     <script>
-        // UWAGA: Funkcje 'window.kupowanieSukces' i 'window.kupowanieBłąd' są wstrzykiwane przez Pythona
-        // i NIE MUSZĄ być definiowane w tym pliku.
-
+        // UWAGA: Mechanizm komunikacji zmienia się z protokołu 'app-action:' na symulowane żądanie HTTP.
+        // Aplikacja Pythona musi być zmodyfikowana, aby przechwytywać te żądania HTTP.
+        
         const BASE = "https://n1b6rvvbyti09r07-6bfn987b4v5r8b7n9.github.io/MyExplorer";
         const KUP_PRZYCISK = document.getElementById('kup_przycisk');
         const WYNIK = document.getElementById('wynik');
@@ -45,6 +48,23 @@
         function wlaczPrzycisk() {
             KUP_PRZYCISK.disabled = false;
         }
+        
+        // --- NOWA FUNKCJA OBSŁUGUJĄCA ODPOWIEDZI Z SERWERA (Symulacja PHP) ---
+        function handleResponse(data) {
+            wlaczPrzycisk(); // Zawsze włączamy przycisk po otrzymaniu odpowiedzi
+            
+            if (data.status === 'success') {
+                WYNIK.innerHTML = `<span style='color:lime'>SUKCES: Domena <b>${data.domena}</b> została utworzona LOKALNIE! Przeładowuję.</span>`;
+                WYNIK.style.color = "lime";
+                
+                // W trybie PHP-symulacji, przekierowujemy na stronę rejestratora po sukcesie
+                window.location.href = `${BASE}/domains.netai/index.html`; 
+            } else {
+                WYNIK.innerHTML = `<div class="error-php">BŁĄD ZAKUPU (PHP Sim): ${data.message}</div>`;
+                WYNIK.style.color = "red";
+            }
+        }
+        // ---------------------------------------------------------------------
 
         function sprawdzDostepnosc() {
             const domena = document.getElementById('domena').value.trim();
@@ -93,33 +113,29 @@
             const domena = document.getElementById('domena').value.trim();
             
             if (!domena) {
-                // Używamy funkcji zwrotnej Pythona do wyświetlenia komunikatu o błędzie zamiast alertu
-                if (window.kupowanieBłąd) {
-                    window.kupowanieBłąd("Najpierw wpisz domenę!");
-                } else {
-                    WYNIK.innerHTML = "<span style='color:red'>Najpierw wpisz domenę!</span>";
-                }
+                WYNIK.innerHTML = "<span style='color:red'>Najpierw wpisz domenę!</span>";
                 return;
             }
 
             if (!domenaDostepna) {
-                if (window.kupowanieBłąd) {
-                    window.kupowanieBłąd("Nie można kupić: domena nie została sprawdzona lub jest zajęta!");
-                } else {
-                    WYNIK.innerHTML = "<span style='color:red'>Nie można kupić: domena nie została sprawdzona lub jest zajęta!</span>";
-                }
+                WYNIK.innerHTML = "<span style='color:red'>Nie można kupić: domena nie została sprawdzona lub jest zajęta!</span>";
                 return;
             }
             
             wylaczPrzycisk();
-            WYNIK.innerHTML = "Wysyłanie żądania zakupu do systemu NetAi...";
+            WYNIK.innerHTML = "Wysyłanie żądania zakupu do symulowanego skryptu PHP...";
             WYNIK.style.color = "yellow";
 
-            // --- KOMUNIKACJA Z PYTHONEM POPRZEZ ZMIANĘ URL ---
+            // --- NOWA KOMUNIKACJA: Symulacja żądania HTTP do skryptu PHP ---
             // Zmieniamy adres URL, co wywoła zdarzenie EVT_WEBVIEW_NAVIGATING w Pythonie,
-            // które następnie jest przechwytywane przez funkcję on_navigate.
-            window.location.href = `app-action:kup/${domena}`;
+            // które teraz musi przechwycić ścieżkę do skryptu PHP.
+            // Używamy protokołu 'http', który Python musi przechwycić.
+            window.location.href = `http://php-simulacja/kup_domene.php?domena=${encodeURIComponent(domena)}`;
         }
+
+        // Deklarujemy globalnie, ale bez definicji, bo będą używane jako callbacki po symulacji PHP w Pythonie.
+        window.kupowanieSukces = handleResponse;
+        window.kupowanieBłąd = handleResponse; 
     </script>
 </body>
 </html>
